@@ -1,0 +1,55 @@
+CREATE TABLE Board (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE Column (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    boardId INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    FOREIGN KEY (boardId) REFERENCES Board(id) ON DELETE CASCADE
+);
+
+CREATE TABLE Task (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    columnId INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    position INTEGER NOT NULL,
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (columnId) REFERENCES Column(id) ON DELETE CASCADE
+);
+
+CREATE TABLE ChecklistItem (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    taskId INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    isCompleted INTEGER AS Boolean DEFAULT 0,
+    position INTEGER NOT NULL,
+    FOREIGN KEY (taskId) REFERENCES Task(id) ON DELETE CASCADE
+);
+
+CREATE TABLE Comment (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    taskId INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (taskId) REFERENCES Task(id) ON DELETE CASCADE
+);
+
+-- Consultas
+getAllBoards:
+SELECT * FROM Board;
+
+getColumnsByBoardId:
+SELECT * FROM Column WHERE boardId = ? ORDER BY position;
+
+getTasksByColumnId:
+SELECT * FROM Task WHERE columnId = ? ORDER BY position;
+
+getChecklistItemsByTaskId:
+SELECT * FROM ChecklistItem WHERE taskId = ? ORDER BY position;
+
+getCommentsByTaskId:
+SELECT * FROM Comment WHERE taskId = ? ORDER BY created_at DESC;
