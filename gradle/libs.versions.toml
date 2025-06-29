@@ -1,15 +1,17 @@
 [versions]
-agp = "8.1.0"
-android-compileSdk = "34"
+agp = "8.10.1"
+android-compileSdk = "35"
 android-minSdk = "24"
 android-targetSdk = "34"
-androidx-activity = "1.8.2"
-androidx-appcompat = "1.6.1"
-androidx-core = "1.12.0"
-androidx-lifecycle = "2.7.0"
-compose = "1.5.4"
-composeMultiplatform = "1.5.11"
-kotlin = "1.9.20"
+androidx-activity = "1.10.1"
+androidx-appcompat = "1.7.1"
+androidx-core = "1.16.0"
+androidx-lifecycle = "2.9.1"
+compose = "1.6.0"
+composeMultiplatform = "1.8.2"
+kotlin = "2.0.0-Beta4"
+kotlinComposeCompiler = "1.5.8"
+kotlinxDatetime = "0.6.2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -17,9 +19,11 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
+composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose" }
+kotlinComposePlugin = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinComposeCompiler" }

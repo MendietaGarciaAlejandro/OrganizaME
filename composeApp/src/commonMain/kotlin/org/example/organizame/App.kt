@@ -11,11 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.example.organizame.data.models.Column
 import org.example.organizame.ui.KanbanBoard
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
 fun App() {
     MaterialTheme {
         Scaffold(

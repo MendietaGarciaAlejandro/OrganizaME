@@ -1,8 +1,4 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.compose.ExperimentalComposeLibrary
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -11,17 +7,19 @@ plugins {
 }
 
 kotlin {
-    androidTarget {
+    androidTarget { // ← you can keep your compilerOptions here
         compilations.all {
-            kotlinOptions {
-                jvmTarget = "11"
+            kotlin {
+                compilerOptions {
+                    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+                    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+                }
             }
         }
     }
-    
+
     jvm("desktop")
-    
-    @OptIn(ExperimentalWasmDsl::class)
+
     wasmJs {
         browser {
             commonWebpackConfig {
@@ -37,21 +35,34 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.ui)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
-            @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
-            implementation(compose.preview)
+            implementation(libs.kotlinx.datetime)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
+        }
+        val wasmJsMain by getting {
+            dependencies {
+                implementation(compose.runtime)                     // core UI libs
+                implementation(compose.foundation)
+                implementation(compose.material3)
+                implementation(compose.ui)
+
+
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 package org.example.organizame.data.models
 
+import kotlinx.datetime.Instant
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 data class Board(
     val id: Long,
@@ -15,7 +15,7 @@ data class Column(
     val position: Int
 )
 
-data class Task @OptIn(ExperimentalTime::class) constructor(
+data class Task constructor(
     val id: Long,
     val columnId: Long,
     val title: String,
