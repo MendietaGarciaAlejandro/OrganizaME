@@ -1,27 +1,28 @@
 package org.example.organizame.data.models
 
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlin.time.ExperimentalTime
 
 data class Board(
     val id: Long,
     val name: String
 )
 
-data class Column(
-    val id: Long,
-    val boardId: Long,
-    val name: String,
-    val position: Int
-)
-
 data class Task(
     val id: Long,
     val columnId: Long,
     val title: String,
-    val description: String?,
+    val description: String? = null,
     val position: Int,
-    val createdAt: Instant
+    val createdAt: Instant = Clock.System.now()
+)
+
+data class Column(
+    val id: Long,
+    val boardId: Long,
+    val name: String,
+    val position: Int,
+    val tasks: List<Task> = emptyList()
 )
 
 data class ChecklistItem(
@@ -32,9 +33,9 @@ data class ChecklistItem(
     val position: Int
 )
 
-data class Comment @OptIn(ExperimentalTime::class) constructor(
+data class Comment(
     val id: Long,
     val taskId: Long,
     val text: String,
-    val createdAt: Instant
+    val createdAt: Instant = Clock.System.now()
 )

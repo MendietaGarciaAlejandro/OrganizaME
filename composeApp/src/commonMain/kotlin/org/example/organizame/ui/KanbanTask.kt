@@ -26,7 +26,7 @@ fun KanbanTask(
                 text = task.title,
                 style = MaterialTheme.typography.titleMedium
             )
-            if (!task.description.isNullOrBlank()) {
+            if (task.description?.isNotBlank() == true) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = task.description,

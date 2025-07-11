@@ -8,6 +8,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import org.example.organizame.data.models.Column
@@ -21,68 +22,37 @@ fun App() {
     MaterialTheme {
         val viewModel = remember { KanbanViewModel() }
 
-        // Inicializar las columnas con algunas tareas de ejemplo
-        remember {
-            val columns = listOf(
-                Column(
-                    id = 1L,
-                    boardId = 1L,
-                    name = "Por hacer",
-                    position = 0,
-                    tasks = listOf(
-                        Task(
-                            id = 1L,
-                            columnId = 1L,
-                            title = "Tarea 1",
-                            description = "Descripción de la tarea 1",
-                            position = 0
-                        ),
-                        Task(
-                            id = 2L,
-                            columnId = 1L,
-                            title = "Tarea 2",
-                            description = "Descripción de la tarea 2",
-                            position = 1
+        // Inicializo columnas de ejemplo solo una vez
+        LaunchedEffect(Unit) {
+            viewModel.initializeColumns(
+                listOf(
+                    Column(
+                        id = 1L, boardId = 1L, name = "Por hacer", position = 0,
+                        tasks = listOf(
+                            Task(1L, 1L, "Tarea 1", "Detalle 1", 0),
+                            Task(2L, 1L, "Tarea 2", "Detalle 2", 1)
                         )
-                    )
-                ),
-                Column(
-                    id = 2L,
-                    boardId = 1L,
-                    name = "En progreso",
-                    position = 1,
-                    tasks = listOf(
-                        Task(
-                            id = 3L,
-                            columnId = 2L,
-                            title = "Tarea 3",
-                            description = "Descripción de la tarea 3",
-                            position = 0
+                    ),
+                    Column(
+                        id = 2L, boardId = 1L, name = "En progreso", position = 1,
+                        tasks = listOf(
+                            Task(3L, 2L, "Tarea 3", "Detalle 3", 0)
                         )
-                    )
-                ),
-                Column(
-                    id = 3L,
-                    boardId = 1L,
-                    name = "Terminado",
-                    position = 2,
-                    tasks = emptyList()
+                    ),
+                    Column(id = 3L, boardId = 1L, name = "Terminado", position = 2)
                 )
             )
-            viewModel.setColumns(columns)
         }
 
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = { Text("OrganizaME") }
-                )
+                TopAppBar(title = { Text("OrganizaME") })
             }
-        ) { paddingValues ->
+        ) { padding ->
             KanbanBoard(
                 viewModel = viewModel,
                 modifier = Modifier
-                    .padding(paddingValues)
+                    .padding(padding)
                     .fillMaxSize()
             )
         }

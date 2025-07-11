@@ -17,50 +17,32 @@ import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.example.organizame.data.models.Column
+import org.example.organizame.data.models.Task
 
-data class DragInfo(
-    val taskId: Long,
-    val sourceColumnId: Long
-)
+data class DragInfo(val taskId: Long, val fromColumn: Long)
 
 @Composable
-fun KanbanBoard(
-    viewModel: KanbanViewModel,
-    modifier: Modifier = Modifier
-) {
+fun KanbanBoard(viewModel: KanbanViewModel, modifier: Modifier = Modifier) {
     var dragInfo by remember { mutableStateOf<DragInfo?>(null) }
     var dragOffset by remember { mutableStateOf(Offset.Zero) }
 
-    Box(
-        modifier = modifier.fillMaxSize()
-    ) {
+    Box(modifier = modifier) {
         LazyRow(
-            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(viewModel.columns) { column ->
+            items(viewModel.columns, key = { it.id }) { col ->
                 KanbanColumn(
-                    column = column,
+                    column = col,
                     dragInfo = dragInfo,
-                    onDragStart = { taskId ->
-                        dragInfo = DragInfo(taskId, column.id)
-                    },
-                    onDragEnd = {
-                        dragInfo = null
-                        dragOffset = Offset.Zero
-                    },
-                    onDrag = { offset ->
-                        dragOffset += offset
-                    },
-                    onDrop = { targetColumnId ->
-                        dragInfo?.let { info ->
-                            if (info.sourceColumnId != targetColumnId) {
-                                viewModel.moveTask(info.taskId, info.sourceColumnId, targetColumnId)
-                            }
+                    onDragStart = { id -> dragInfo = DragInfo(id, col.id) },
+                    onDrag = { offset -> dragOffset += offset },
+                    onDragEnd = { dragInfo = null; dragOffset = Offset.Zero },
+                    onDrop = { targetId ->
+                        dragInfo?.let {
+                            viewModel.moveTask(it.taskId, it.fromColumn, targetId)
                         }
-                        dragInfo = null
-                        dragOffset = Offset.Zero
+                        dragInfo = null; dragOffset = Offset.Zero
                     },
                     modifier = Modifier.width(300.dp)
                 )
@@ -74,75 +56,41 @@ fun KanbanColumn(
     column: Column,
     dragInfo: DragInfo?,
     onDragStart: (Long) -> Unit,
-    onDragEnd: () -> Unit,
     onDrag: (Offset) -> Unit,
+    onDragEnd: () -> Unit,
     onDrop: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    val lazyListState = rememberLazyListState()
 
-    Card(
-        modifier = modifier
-            .fillMaxHeight(0.95f)
-            .pointerInput(Unit) {
-                detectDragGesturesAfterLongPress(
-                    onDragEnd = {
-                        onDrop(column.id)
-                        onDragEnd()
-                    },
-                    onDrag = { change, offset ->
-                        change.consume()
-                        onDrag(offset)
-                        // Auto-scroll cuando se arrastra cerca de los bordes
-                        scope.launch {
-                            when {
-                                offset.y < 0 -> lazyListState.scrollBy(-10f)
-                                offset.y > 0 -> lazyListState.scrollBy(10f)
-                            }
-                        }
-                    }
-                )
-            }
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxSize()
-        ) {
-            Text(
-                text = column.name,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(8.dp)
-            )
-
+    Card(modifier = modifier.fillMaxHeight(0.95f)) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Text(column.name, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
             LazyColumn(
-                state = lazyListState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 8.dp),
+                state = listState,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(column.tasks, key = { it.id }) { task ->
-                    val isDragging = dragInfo?.taskId == task.id
-
+                    val dragging = dragInfo?.taskId == task.id
                     TaskCard(
-                        title = task.title,
-                        description = task.description,
+                        task = task,
                         modifier = Modifier
-                            .zIndex(if (isDragging) 1f else 0f)
-                            .graphicsLayer {
-                                if (isDragging) {
-                                    alpha = 0.5f
-                                }
-                            }
-                            .pointerInput(Unit) {
+                            .graphicsLayer { alpha = if (dragging) 0.5f else 1f }
+                            .zIndex(if (dragging) 1f else 0f)
+                            .pointerInput(task.id) {
                                 detectDragGesturesAfterLongPress(
                                     onDragStart = { onDragStart(task.id) },
-                                    onDragEnd = { onDragEnd() },
+                                    onDragEnd = { onDragEnd(); onDrop(column.id) },
                                     onDrag = { change, offset ->
                                         change.consume()
                                         onDrag(offset)
+                                        // auto-scroll
+                                        scope.launch {
+                                            if (offset.y < 0) listState.scrollBy(-10f)
+                                            else if (offset.y > 0) listState.scrollBy(10f)
+                                        }
                                     }
                                 )
                             }
@@ -154,25 +102,16 @@ fun KanbanColumn(
 }
 
 @Composable
-fun TaskCard(
-    title: String,
-    description: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Column(
-            modifier = Modifier.padding(8.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall
-            )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium
-            )
+fun TaskCard(task: Task, modifier: Modifier = Modifier) {
+    Card(modifier = modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
+        Column(Modifier.padding(8.dp)) {
+            Text(task.title, style = MaterialTheme.typography.titleSmall)
+            task.description?.let {
+                if (it.isNotBlank()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(it, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
+                }
+            }
         }
     }
 }
