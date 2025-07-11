@@ -1,9 +1,9 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinComposePlugin)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
 }
@@ -59,15 +59,12 @@ kotlin {
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
         }
-        val wasmJsMain by getting {
-            dependencies {
-                implementation(compose.runtime)                     // core UI libs
-                implementation(compose.foundation)
-                implementation(compose.material3)
-                implementation(compose.ui)
-
-
-            }
+        wasmJsMain.dependencies {
+            implementation(compose.runtime)                     // core UI libs
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.ui)
+            //implementation(compose.web.core)
         }
     }
 }

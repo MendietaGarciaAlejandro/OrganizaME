@@ -10,7 +10,12 @@ pluginManagement {
     }
 
     plugins {
-        kotlin("plugin.compose") version "1.9.21"
+        // Kotlin Multiplatform
+        id("org.jetbrains.kotlin.multiplatform") version "2.0.0"
+        // Plugin del compilador de Compose para Kotlin 2.0+
+        id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
+        // Compose Multiplatform
+        id("org.jetbrains.compose") version "1.9.21"
     }
 }
 
