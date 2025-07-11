@@ -15,7 +15,7 @@ data class Column(
     val position: Int
 )
 
-data class Task constructor(
+data class Task(
     val id: Long,
     val columnId: Long,
     val title: String,
