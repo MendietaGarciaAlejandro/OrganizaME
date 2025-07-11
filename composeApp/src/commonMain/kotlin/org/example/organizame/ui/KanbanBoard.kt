@@ -1,5 +1,6 @@
 package org.example.organizame.ui
 
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
@@ -13,11 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.example.organizame.data.models.Column
 import org.example.organizame.data.models.Task
+import kotlin.math.roundToInt
 
 data class DragInfo(val taskId: Long, val fromColumn: Long)
 
@@ -48,6 +51,25 @@ fun KanbanBoard(viewModel: KanbanViewModel, modifier: Modifier = Modifier) {
                 )
             }
         }
+
+        // Overlay de la tarjeta mientras arrastras
+        dragInfo?.let { info ->
+            val srcCol = viewModel.columns.first { it.id == info.fromColumn }
+            val task = srcCol.tasks.first { it.id == info.taskId }
+
+            TaskCard(
+                task = task,
+                modifier = Modifier
+                    .offset {
+                        IntOffset(
+                            x = dragOffset.x.roundToInt(),
+                            y = dragOffset.y.roundToInt()
+                        )
+                    }
+                    .zIndex(10f)
+                    .graphicsLayer { alpha = 0.8f }
+            )
+        }
     }
 }
 
@@ -64,7 +86,28 @@ fun KanbanColumn(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
-    Card(modifier = modifier.fillMaxHeight(0.95f)) {
+    Card(
+        modifier = modifier
+            .fillMaxHeight(0.95f)
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = { /* no-op */ },
+                    onDrag = { change, offset ->
+                        change.consume()
+                        onDrag(offset)
+                        scope.launch {
+                            if (offset.y < 0) listState.scrollBy(-10f)
+                            else if (offset.y > 0) listState.scrollBy(10f)
+                        }
+                    },
+                    onDragEnd = {
+                        onDrop(column.id)
+                        onDragEnd()
+                    },
+                    onDragCancel = { onDragEnd() }
+                )
+            }
+    ) {
         Column(modifier = Modifier.padding(8.dp)) {
             Text(column.name, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
@@ -82,16 +125,15 @@ fun KanbanColumn(
                             .pointerInput(task.id) {
                                 detectDragGesturesAfterLongPress(
                                     onDragStart = { onDragStart(task.id) },
-                                    onDragEnd = { onDragEnd(); onDrop(column.id) },
                                     onDrag = { change, offset ->
                                         change.consume()
                                         onDrag(offset)
-                                        // auto-scroll
                                         scope.launch {
                                             if (offset.y < 0) listState.scrollBy(-10f)
                                             else if (offset.y > 0) listState.scrollBy(10f)
                                         }
-                                    }
+                                    },
+                                    onDragEnd = { onDragEnd() }
                                 )
                             }
                     )
@@ -100,6 +142,7 @@ fun KanbanColumn(
         }
     }
 }
+
 
 @Composable
 fun TaskCard(task: Task, modifier: Modifier = Modifier) {
